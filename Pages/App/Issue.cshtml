@@ -1,0 +1,526 @@
+@page
+@model IssueModel
+
+@{
+    ViewData["Title"] = "Issue";
+}
+
+<div class="just_left">
+    
+    @{
+        string referer = HttpContext.Request.Headers["Referer"].ToString();
+
+        if (referer.Contains("Search"))
+        {
+            <a href="@referer">Back to Search</a>
+        }
+        else
+        {
+            <a href="/App/Issues">Back to Issues</a>
+        }
+        <span>&nbsp;&nbsp;&nbsp;</span>
+
+        if (Model.prev_issue_id_in_list != 0)
+        {
+            <a href="/App/Issue?id=@Model.prev_issue_id_in_list">Prev</a>
+        }
+        else
+        {
+            <span class="gray">Prev</span>
+        }
+
+        <span>&nbsp;&nbsp;</span>
+        if (Model.next_issue_id_in_list != 0)
+        {
+            <a href="/App/Issue?id=@Model.next_issue_id_in_list">Next</a>
+        }
+        else
+        {
+            <span class="gray">Next</span>
+        }
+    } <!--end code-->
+</div>
+<partial name="_FlashPartial" />
+
+    <div class="form_div">
+    <form class="issue_form" method="post">
+
+        <input type="hidden" asp-for="force_create" value=""/>
+        
+            @{
+            if (Model.id != 0)
+            {
+                <div id="id_and_info">
+                    <label>ID @Model.id</label>
+                    <span>
+                    Created by @Model.created_by_username on @Model.created_date 
+                    @{if (Model.last_updated_username != "")
+                        {
+                        <span>, Last updated by @Model.last_updated_username on @Model.last_updated_date</span>
+                            
+                        }
+                    }
+                    </span>
+                </div>
+            }
+            }<!--end code-->
+        
+      
+        <table class="form_table">
+        
+            <tr>
+                <td><label>Description</label>
+                <td colspan=3><input maxlength="200"  class="issue_description_input" asp-for="description" disabled="@Model.disable_dropdowns_when_not_null"></input>
+            </tr>
+
+            <tr>
+                <td><label>Details</label>
+                <td colspan=3><textarea class="issue_textarea" asp-for="details" disabled="@Model.disable_dropdowns_when_not_null"></textarea>
+            </tr>
+        
+        </table>
+
+        <div class="dropdown_container">
+            
+            @{
+
+            <label class="issue_select_label" id="organization_label">Organization</label>
+            <select class="issue_select" asp-for="organization_id" asp-items="@Model.organization_list" disabled="@Model.disable_dropdowns_when_not_null">
+            </select>
+            
+            <label class="issue_select_label" id="assigned_to_user_label">Organization</label>
+            <select class="issue_select" asp-for="assigned_to_user_id" asp-items="@Model.assigned_to_user_list" disabled="@Model.disable_dropdowns_when_not_null">
+            </select>
+
+            if (bd_config.get(bd_config.CustomFieldEnabled1) == 1) 
+            {
+                <label class="issue_select_label" id="custom_1_label">@Model.custom_1_label</label>
+                <select  class="issue_select" asp-for="custom_1_id" asp-items="@Model.custom_1_list" disabled="@Model.disable_dropdowns_when_not_null">
+                    <option value="0">[None]</option>
+                </select>
+            }
+
+            if (bd_config.get(bd_config.CustomFieldEnabled2) == 1) 
+            {
+                <label class="issue_select_label" id="custom_2_label">@Model.custom_2_label</label>
+                <select  class="issue_select" asp-for="custom_2_id" asp-items="@Model.custom_2_list" disabled="@Model.disable_dropdowns_when_not_null">
+                    <option value="0">[None]</option>
+                </select>
+            }
+            
+            if (bd_config.get(bd_config.CustomFieldEnabled3) == 1) 
+            {
+                <label class="issue_select_label" id="custom_3_label">@Model.custom_3_label</label>
+                <select  class="issue_select" asp-for="custom_3_id" asp-items="@Model.custom_3_list" disabled="@Model.disable_dropdowns_when_not_null">
+                    <option value="0">[None]</option>
+                </select>
+            }
+            
+            if (bd_config.get(bd_config.CustomFieldEnabled4) == 1) 
+            {
+                <label class="issue_select_label" id="custom_4_label">@Model.custom_4_label</label>
+                <select  class="issue_select" asp-for="custom_4_id" asp-items="@Model.custom_4_list" disabled="@Model.disable_dropdowns_when_not_null">
+                    <option value="0">[None]</option>
+                </select>
+            }
+            
+            if (bd_config.get(bd_config.CustomFieldEnabled5) == 1) 
+            {
+                <label class="issue_select_label" id="custom_5_label">@Model.custom_5_label</label>
+                <select  class="issue_select" asp-for="custom_5_id" asp-items="@Model.custom_5_list" disabled="@Model.disable_dropdowns_when_not_null">
+                    <option value="0">[None]</option>
+                </select>
+            }
+            
+            if (bd_config.get(bd_config.CustomFieldEnabled6) == 1) 
+            {
+                <label class="issue_select_label" id="custom_6_label">@Model.custom_6_label</label>
+                <select  class="issue_select" asp-for="custom_6_id" asp-items="@Model.custom_6_list" disabled="@Model.disable_dropdowns_when_not_null">
+                    <option value="0">[None]</option>
+                </select>
+            }
+            }<!--end code-->
+            
+    
+        </div> <!-- dropdown container -->
+
+        @{
+        if (Model.disable_dropdowns_when_not_null is null)
+        {
+            string button_text = (Model.id == 0) ? "Create" : "Update";
+            <div>
+                <button id="create_or_update_button" type="submit">@button_text</button>
+                <span class="prep_for_another fake_link" onclick="prep_for_another()">Use this issue as a starting point for new issue</span>
+
+            </div>
+        }
+        }<!--end code-->
+
+    </form>
+    </div> <!--form_div-->
+
+    @{
+    if (Model.id != 0)
+    {
+        <div id="posts" class="posts_outer"></div>
+
+        bool us_user_is_report_only = bd_util.is_user_report_only(HttpContext);
+        
+        <div class="form_div">
+            <form class="post_form" id="post_form" method="post" enctype="multipart/form-data">
+                <table class="form_table">
+
+                    @{
+                    if (us_user_is_report_only)
+                    {
+                        <input type="hidden" id="comment" name="post_type" value="@bd_issue.POST_TYPE_COMMENT">
+                    } 
+                    else
+                    {
+                        <!-- comment or email radio buttons -->
+                        <tr><td>
+                            <input onchange="comment_or_email(this)" type="radio" id="comment" name="post_type" value="@bd_issue.POST_TYPE_COMMENT" checked>
+                            <label for="comment">Comment</label>
+                            <input onchange="comment_or_email(this)" type="radio" id="email" name="post_type" value="@bd_issue.POST_TYPE_EMAIL_OUT">
+                            <label for="email">Email</label><br>
+                        </td></tr>
+                    }
+                    
+                    if (Model.dt_post_email_to is not null)
+                    {
+                        <tr id="email_fields" style="display:none;"><td>
+                          
+                            <!-- "To" button -->
+                            <button type="button" onclick="open_post_email_to_select()" id="post_email_to_label" placeholder="user@example.com">To:</button>
+                        
+                            <!-- modal fake dropdown of to addresses -->
+                            <div id="post_email_to_select" style="visibility: hidden;" 
+                                class="post_email_to_select dont_flash_when_selected" tabindex="999"><!--tabindex is for onblur-->
+                                <div class="post_email_to_select_close">
+                                    <span onclick="close_post_email_to_select()">Close</span>
+                                </div>
+                                @{
+                                    foreach (DataRow dr in Model.dt_post_email_to.Rows)
+                                    {
+                                        <div class="post_email_to_select_row">@dr[0]</div>
+                                    }
+                                }
+                            </div> 
+                           
+                            <!-- used for sizing the list of addresses -->
+                            <span id="hidden_row_count" style="display:none;">@Model.dt_post_email_to.Rows.Count</span>                        
+                            <input class="post_form_email_to_input" asp-for="post_email_to" value="">
+                        </td></tr>
+                    }
+                    }<!--end code-->
+                    
+
+                    <tr><td>
+                        <textarea class="post_form_textarea" name="post_text" id="post_text"></textarea>
+                    </td></tr>
+                    
+                    <tr><td>
+                        <div id="file_div1">
+                            <span class="fake_link" style="display:none" id="remove_file1" onclick="remove_attachment(1)">Remove</span>
+                            <label class="file_name_label fake_link">
+                                <span class="fake_link" id="attach_file1">Attach File</span>
+                                <input style="display:none" onchange="on_change_file_name(1)" type="file" asp-for="uploaded_file1" />
+                            </label>
+                            <span class="file_name" id="file_name1"></span>
+                        </div>               
+                        
+                        <div id="file_div2" style="display:none">
+                            <span class="fake_link" style="display:none" id="remove_file2" onclick="remove_attachment(2)">Remove</span>
+                            <label class="file_name_label fake_link">
+                                <span class="fake_link" id="attach_file2">Attach File</span>
+                                <input style="display:none" onchange="on_change_file_name(2)" type="file" asp-for="uploaded_file2" />
+                            </label>
+                            <span class="file_name" id="file_name2"></span>
+                        </div>
+
+                        <div id="file_div3" style="display:none">
+                            <span class="fake_link" style="display:none" id="remove_file3" onclick="remove_attachment(3)">Remove</span>
+                            <label class="file_name_label ">
+                                <span class="fake_link" id="attach_file3">Attach File</span>
+                                <input style="display:none" onchange="on_change_file_name(3)" type="file" asp-for="uploaded_file3" />
+                            </label>
+                            <span class="file_name" id="file_name3"></span>
+                        </div>
+                    </td></tr>
+
+                    <tr><td>
+                        <button type="button" onclick="submit_post()">Submit</button>
+                        <span class="waiting" style="display:none">Posting...</span>
+       
+                    </td></tr>
+                </table>
+            </form>
+        </div><!--form_div-->
+        
+     }
+}
+
+@section Scripts {
+    <script src="~/lib/regex-weburl.js" asp-append-version="true"></script>
+    <script src="~/lib/diff_match_patch.js" asp-append-version="true"></script>
+    <script>
+        
+    $(document).ready(function() {
+        if (@Model.id !=0)
+        {
+            get_posts();
+            prepare_post_email_to_select();
+        }
+
+        $("#posts").on('click', '.history-ref', function (e) {
+            e.preventDefault();
+
+            var before = $(this).data("before");
+            var after = $(this).data("after");
+            var dmp = new diff_match_patch();
+
+            dmp.Diff_Timeout = 0;
+
+            var diff = dmp.diff_main(`${before}`, `${after}`, false);
+            var result = dmp.diff_prettyHtml(diff);
+
+            budoco.modal.show("Before and After", result);
+        });
+     });
+ 
+    function get_posts() {
+        $.ajax({
+            type: "Get",
+            url: "/App/Issue?handler=Posts&id=@Model.id",
+ 
+            success: function (posts_as_html) {
+                // blank out form
+                blank_out_post_form();
+                addPosts(posts_as_html);
+            },
+            
+            failure: function (response) {
+                alert(response);
+            },
+
+            statusCode: {
+                500: function() {
+                    alert("get - server returned status code of 500");
+                }
+            }
+        });
+    }
+    function blank_out_post_form () {
+   
+        // blank out the form we just posted
+        $("#post_email_to").val("");
+        $("#post_text").val("");
+
+        $("#file_name1").html("");
+        $("#file_name2").html("");
+        $("#file_name3").html("");
+
+        $("#attach_file1").show();
+        $("#attach_file2").hide();
+        $("#attach_file3").hide();
+        
+        $("#remove_file1").hide();
+        $("#remove_file2").hide();
+        $("#remove_file3").hide();
+
+        $("#file_div2").hide();
+        $("#file_div3").hide();
+
+        $("#uploaded_file1").val("");
+        $("#uploaded_file2").val("");
+        $("#uploaded_file3").val("");
+    }
+
+    function submit_post() {
+        show_waiting()
+
+        no_file = $("#uploaded_file1").val() == ""
+        && $("#uploaded_file2").val() == ""
+        && $("#uploaded_file3").val() == "";
+
+        if ($('#post_text').val().trim() == "" && no_file) {
+            alert("Some text or a file is required.");
+            return;
+        }
+
+        $.ajax({
+            url: '/App/Issue?id=@Model.id&handler=AddPost',
+            data: new FormData(document.getElementById("post_form")),
+            contentType: false,
+            processData: false,
+            type: 'post',
+            
+            success: function (posts_as_html) {
+              
+                if (!posts_as_html.startsWith("<!--error-->")) {
+                    blank_out_post_form();
+                }
+
+                addPosts(posts_as_html);
+                hide_waiting()
+            },
+            
+            failure: function(response) {
+                hide_waiting()
+                alert(response)
+            },
+
+            statusCode: {
+                400: function() {
+                    hide_waiting()
+                    alert("post- server returned status code of 400");
+                },
+                413: function() {
+                    hide_waiting()
+                    alert("The total size of the files you are uploading is too big. (http status 413)");
+                },
+                500: function() {
+                    hide_waiting()
+                    alert("post- server returned status code of 500");
+                }
+            }
+        }) // end submit post
+    } // end func
+
+    function addPosts(posts_as_html) {
+        $("#posts").html(posts_as_html)
+            .find(".post_text")
+            .each(function () {
+                var $this = $(this);
+
+                $this.html(turnUrls($this.html()));
+            });
+    }
+
+    function turnUrls(content) {
+        return content.replace(re_weburl, "<a href='$1'>$1</a>");
+    }
+
+    function show_hide_image(image_div_id, link) {
+        if ($(link).html() == "View") {
+            $(link).html("Hide")
+            $(image_div_id).show()
+        }
+        else {
+            $(link).html("View")
+            $(image_div_id).hide()
+        }
+    } // end func
+    
+    function prep_for_another() {
+        $("#posts").html("")
+        $("#id_and_info").html("")
+        $("#force_create").val("force_create")
+        $("#create_or_update_button").html("Create")
+    }
+
+    function remove_attachment(suffix) {
+        $("#uploaded_file" + suffix).val("");
+        $("#file_name" + suffix).html("");
+        $("#remove_file" + suffix).hide();
+        $("#attach_file" + suffix).show();
+    }
+
+    function on_change_file_name(suffix) {
+        filename = $("#uploaded_file" + suffix).val();
+        $("#file_name" + suffix).html(filename);
+        $("#attach_file" + suffix).hide();
+        $("#remove_file" + suffix).show();
+
+        if (suffix == "1") {
+         
+            $("#file_div2").show();
+            $("#attach_file2").show();
+        }
+        else if (suffix == "2") {
+            $("#file_div3").show();
+            $("#attach_file3").show();
+        }
+
+    }  
+         
+    function comment_or_email(el) {
+        var post_type = $(el).val();
+        if (post_type == "@bd_issue.POST_TYPE_EMAIL_OUT") {
+            $("#email_fields").show();
+        }
+        else {
+            $("#email_fields").hide();
+        }
+
+
+
+    }
+
+    /* for when you hit the "To:" button */
+    function prepare_post_email_to_select() {
+        $select = $(".post_email_to_select");
+        $select.on("blur", function () {
+            close_post_email_to_select();
+        })
+        $(".post_email_to_select_row").on("click", function () {
+            append_selected_address_to_to($(this).text())
+        })
+    }
+
+    function append_selected_address_to_to(address) {
+        $input = $("#post_email_to");
+        to = $input.val()
+        if (to == "") {
+            to = address
+        }
+        else {
+            if (to.endsWith(",") || to.endsWith(", ")) {
+                to += address
+            }
+            else {
+                to += "," + address
+            }
+        }
+        $input.val(to)
+    }
+    
+    function open_post_email_to_select() {
+        $select = $(".post_email_to_select");
+        $select.css("visibility", "visible");
+        $select.css("width", "400px");
+        
+        // calc height so there isn't a lot of blank space
+        row_count = $("#hidden_row_count").text()
+
+        if (row_count == 0) {
+            row_count = 2
+        }
+        if (row_count > 6) {
+            row_count = 6
+        }
+        // the "Close" row plus
+        height = 18 + (row_count * 27)
+        $select.css("height", height);
+   
+    }
+
+    function close_post_email_to_select() {
+        $(".post_email_to_select").css("visibility", "hidden");
+    }
+
+    function resizeIframe(obj) {
+        
+        var height = obj.contentWindow.document.documentElement.scrollHeight; 
+       
+        if (height > 600) {
+            height = 600
+        }
+ 
+        obj.style.height = height + "px"
+    }
+ 
+    </script>
+
+}
+

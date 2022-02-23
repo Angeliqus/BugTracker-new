@@ -1,0 +1,29 @@
+@page
+@model EmailModel
+
+@{
+    ViewData["Title"] = "Email";
+}
+<h1>@ViewData["Title"]</h1>
+<partial name="_FlashPartial" />
+
+result=@Model.email_result
+
+<div>
+    <div>My Email Form</div>
+    <form method="post">
+        <div>to<input asp-for="to"></input>
+        </div>
+        <div>from<input asp-for="from"></input>
+        </div>
+        <div>subject<input asp-for="subject"></input>
+        </div>
+        <div>body<input asp-for="body"></textarea></div>
+
+        <div><input type="submit">Send</input></div>
+    </form>
+</div>
+
+@section Scripts {
+    
+}

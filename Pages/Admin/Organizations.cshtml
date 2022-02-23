@@ -1,0 +1,22 @@
+﻿@page
+@model OrganizationsModel
+
+@{
+    ViewData["Title"] = "Organizations";
+}
+
+<div class="centered">
+
+<h1>@ViewData["Title"]</h1>
+
+<partial name="_FlashPartial" />
+
+<div><a href="/Admin/Organization?id=0">Create Organization</a></div>
+
+<partial name="_CrudDataTablePartial" />
+
+</div>
+
+@section Scripts {
+    
+}

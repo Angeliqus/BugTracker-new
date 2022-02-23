@@ -1,0 +1,179 @@
+@page
+@model QueryModel
+@using Microsoft.AspNetCore.Mvc.Razor
+
+@{
+    ViewData["Title"] = "Issue Query";
+}
+
+<h1>Create/Update @ViewData["Title"]</h1>
+
+<div class="just_left">
+    <a href="/Admin/Queries">Back to Queries</a>
+</div>
+
+<div class="fake_link" id="show_hide_link" onclick="show_hide_help()">Show Help</div>
+<div id="help" style="display:none"><pre class="info_text centered_and_left_just">
+            
+            $ME:
+
+            You can use the pseudo-variable "$ME" to represent the logged in user. For 
+            example, query issues created by the logged on user:
+            select ... from issues where i_created_by_user = $ME
+
+            Budoco will replace the $ME with the us_id of the logged on user.
+            
+            ORGANIZATIONS:
+            
+            Budoco injects a where clause into queries when the logged on user belongs to an
+            organization and so is restricted to only issues associated with that organization.
+            The injection logic works like this:
+            
+            First it looks for markers you can place in your sql statements: /*AND_ORG*/ or /*WHERE_ORG*/.
+            You will probably want to use these markers if your queries are complex, for example,
+            if they use subquiries. Here are examples of using the markers.
+            
+            select * from issues where i_assigned_to_user != 0 /*AND_ORG*/ order by i_created_date desc
+            or
+            select * from issues /*WHERE_ORG*/ order by i_created_date desc
+            
+            If you don't put in the markers, then Budoco will usually make a correct guess where to
+            put the org clause. It will look for the FIRST occurence of "where" and the FIRST 
+            occurence of "order" and use these rules:
+            
+            if yes where and yes order, then inject before order with an "AND":
+                select * from issues where foo AND (i_organiztion = N) order by bar
+            
+            if yes where and no order, then inject at the end with an "AND"
+                select * from issues where foo AND (i_organiztion = N) 
+            
+            if no where and yes order, then inject before order with "WHERE" instead of "AND"
+                select * from issues WHERE (i_organiztion = N) order by bar
+            
+            if no where and no order, then inject at the end with "WHERE" instead of "AND"
+                select * from issues WHERE (i_organiztion = N)
+
+</pre></div>
+
+<partial name="_FlashPartial" />
+
+<div class="form_div">
+<form id="sql_form" method="post">
+    <table class="form_table">
+        @{
+            if (Model.id != 0)
+            {
+        <tr>
+            <td><label>Id</label>
+            <td><input asp-for="id" disabled></input>
+        </tr>
+            }
+        }
+        <tr>
+            <td><label>Name</label>
+            <td><input maxlength="80" class="issue_query_name_input" asp-for="name"></input>
+        </tr>
+        <tr>
+            <td colspan="99"><label>Active</label>
+            <input asp-for="is_active" value="true" />
+            <label>Default</label>
+            <input asp-for="is_default" value="true" />
+        </tr>
+        
+        <tr>
+            <td><label>Description</label>
+            <td><textarea class="issue_query_description_textarea pre" asp-for="description"></textarea>
+        </tr>
+    </table>
+
+    <table class="form_table">
+        <tr><td>
+            <label>SQL:</label>
+            <br>
+            <textarea onchange="mark_sql_dirty()" class="pre" asp-for="sql"></textarea>
+        </td></tr>
+
+        <tr><td>
+            <button type="button" onclick="run_sql()">Run SQL - Don't Save</button>
+            <button type="button" onclick="maybe_save()">Save in Database</button>
+            <span class="waiting" style="display:none">Running Query...</span>
+     
+        </td></tr>
+    </table>
+</form>
+</div>
+
+
+<div id="results">
+</div>
+
+@section Scripts {
+<script>
+
+    var sql_is_dirty = false;
+    function mark_sql_dirty() {
+        sql_is_dirty = true;
+    }
+
+    function maybe_save() {
+        $(".flash_parent").remove(); // remove previous flash message
+     
+          
+        rows = $("#results_table").length;
+        if (sql_is_dirty || rows == 0) {
+            if (confirm("You don't seem to have tested your latest sql change yet.\n\n" +
+            "Are you sure you want to save?")) {
+                $("#sql_form").submit();
+                sql_is_dirty = false;
+            }
+        }
+        else {
+            $("#sql_form").submit();
+            sql_is_dirty = false;
+        }
+        
+    }
+
+    function run_sql() {
+        show_waiting()
+        $(".flash_parent").remove(); // remove previous flash message
+        $.ajax({
+            url: '/Admin/Query?handler=Run',
+            data: $('#sql_form').serialize(),
+            type: 'post',
+            
+            success: function (html_from_server) {
+                $("#results").html(html_from_server);
+                sql_is_dirty = false;
+                hide_waiting()
+            },
+            
+            failure: function(response) {
+                hide_waiting()
+                alert(response)
+            },
+
+            statusCode: {
+                500: function(responseObject, textStatus, jqXHR) {
+                    hide_waiting()
+                    alert(JSON.stringify(responseObject));
+                }
+            }
+        }) // end submit post
+    } // end func
+
+    function show_hide_help() {
+        text = $("#show_hide_link").text();
+        console.log(text)
+        if (text == "Show Help") {
+            $("#show_hide_link").text("Hide Help")
+            $("#help").show()
+        }
+        else {
+            $("#show_hide_link").text("Show Help")
+            $("#help").hide()
+        }
+    }
+   
+</script>
+}

@@ -1,0 +1,20 @@
+﻿@page
+@model QueriesModel
+
+@{
+    ViewData["Title"] = "Issue Queries";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<partial name="_FlashPartial" />
+
+<div class="just_left">
+<a href="/Admin/Query?id=0">Create Issue Query</a>
+</div>
+
+<partial name="_CrudDataTableWithDeletePartial" />
+
+@section Scripts {
+
+}

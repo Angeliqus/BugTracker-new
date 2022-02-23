@@ -1,0 +1,80 @@
+﻿/* 
+
+This file demonstrates overriding the styles in budoco.css.
+Especially useful for when arranging the custom fields on the issue page.
+
+See budoco_config_active.txt, the settings:
+
+UseCustomCss: 1
+CustomCssFilename: custom_css_example.css
+
+*/
+
+
+ul.menu {
+    background-color: blue;
+}
+
+ul.menu>li>a {
+    background-color: blue;
+    color: white;
+    font-weight: bold;
+}
+
+ul.menu>li>a.logo {
+    background-color: red;
+    color: white;
+    font-family: serif;
+    font-weight: bold;
+    font-size: 20px;
+    letter-spacing: 3px;
+    font-style: italic;
+} 
+
+#organization_label {
+    grid-row-start: 3;
+    grid-column-start: 1;
+}
+
+#organization_id {
+    grid-row-start: 3;
+    grid-column-start: 2;
+}
+
+#assigned_to_user_label {
+    grid-row-start: 1;
+    grid-column-start: 1;
+}
+
+#assigned_to_user_id {
+    grid-row-start: 1;
+    grid-column-start: 2;
+}
+
+#custom_1_label {
+    grid-row-start: 2;
+    grid-column-start: 1;
+}
+#custom_1_id {
+    grid-row-start: 2;
+    grid-column-start: 2;
+}
+
+#custom_2_label {
+    grid-row-start: 4;
+    grid-column-start: 1;
+}
+#custom_2_id {
+    grid-row-start: 4;
+    grid-column-start: 2;
+}
+
+#custom_4_label {
+    grid-row-start: 5;
+    grid-column-start: 1;
+}
+#custom_4_id {
+    grid-row-start: 5;
+    grid-column-start: 2;
+}
+

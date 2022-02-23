@@ -1,0 +1,109 @@
+@page
+@model SearchModel
+@using Microsoft.AspNetCore.Mvc.Razor
+
+@{
+    ViewData["Title"] = "Search Issues";
+}
+
+<h1>@ViewData["Title"]</h1>
+<partial name="_FlashPartial" />
+
+<div class="form_div">
+<form method="get" action="Search">
+    <table class="form_table">
+        
+    <tr>
+        <td><label>Search Keywords:</label>
+        <td><input asp-for="search_terms"/>
+    </tr>
+
+    <tr class="info_text">
+        <td colspan=2>
+        <br>
+        dog cat => searchs for text that contains both dog AND cat
+        <br>
+        dog or cat => search for text that contains either dog OR cat
+        <br>
+        dog -cat => search for text that contains dog but NOT cat
+        <br>
+        "dog cat" => search for text that contains the phrase "dog cat"
+        </td>
+    </tr>
+
+    <tr>
+        <td><button>Search</button>
+    </tr>
+    </table>
+</form>
+</div>
+
+@{
+
+    if (Model.dt is not null) {
+<div class="info_text just_left">@Model.dt.Rows.Count rows</div>
+<table id="dt" class="dt" style="display:none">
+    @{
+        <tr>
+            @{
+                <th>ID</th>
+                <th>Description</th>
+                <th>Context</th>
+                @* <th>Score</th> *@
+            }
+        </tr>
+        for (int row = 0; row < Model.dt.Rows.Count; row++)
+        {
+            DataRow dr = Model.dt.Rows[row];
+            int i_id = (int)dr[0];
+            <tr>
+                <td><a href="/App/Issue?id=@i_id">@i_id</a></td>
+                <td><a href="/App/Issue?id=@i_id">@dr["Description"]</a></td>
+                <td>
+                    <span class="search_context">@dr["Context"]</span>
+                    &nbsp;
+                    @{
+                        int p_id = (int)@dr["p_id"];
+                        if (p_id != 0)
+                        {
+                            <span class="info_text">(in post #@p_id)</span>
+                        }
+                        else 
+                        {
+                            <span class="info_text">(in @dr["context_location"])</span>
+                        }
+                    }
+                </td>
+                @* <td>@(10* (float)dr["score"])</td> *@
+            </tr>
+        }
+    }
+</table>
+    }
+}
+
+
+@section Scripts {
+<script>
+
+    $(document).ready(function() {
+
+        replace_headline_delimeters()
+    });
+    
+    function replace_headline_delimeters()
+    {
+        // do it here to avoid Html.Raw, xss risk
+        $(".search_context").each(function() {
+            s = $(this).html()
+            s = s.replaceAll("SSTART","<b>")
+            s = s.replaceAll("SSTOP","</b>")
+            $(this).html(s)
+        })
+        
+        $("#dt").show();
+
+    }
+
+</script>
+}

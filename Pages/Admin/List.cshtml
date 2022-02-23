@@ -1,0 +1,17 @@
+﻿@page
+@model ListModel
+
+@{
+    ViewData["Title"] = Model.plural_label;
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div><a href="/Admin/Detail?field=@(Model.field)&id=0">Create @Model.singular_label</a></div>
+        
+<partial name="_CrudDataTableCustomPartial" />
+
+
+@section Scripts {
+    
+}
